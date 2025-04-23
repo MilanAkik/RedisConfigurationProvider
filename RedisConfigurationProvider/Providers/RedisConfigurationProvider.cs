@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,23 @@ using System.Threading.Tasks;
 
 namespace RedisConfigurationProvider.Providers
 {
-    public sealed class RedisConfigurationProvider(string? key) : ConfigurationProvider
+    public sealed class RedisConfigurationProvider : ConfigurationProvider
     {
 
-        public static Dictionary<string, Dictionary<string, string>> DataSets = new Dictionary<string, Dictionary<string, string>> {
-            { "TestKey" , new Dictionary<string, string>{ { "ConfigurationData:Data1", "Value1" },  { "ConfigurationData:Data2", "Value2" } } },
-            { "ProdKey" , new Dictionary<string, string>{ { "ConfigurationData:Data1", "ProdValue1" },  { "ConfigurationData:Data2", "ProdValue2" } } }
-        };
+        private IDatabase _db;
+        private string _key;
+
+        public RedisConfigurationProvider(string? connectionString, string key)
+        {
+            var mux = ConnectionMultiplexer.Connect(connectionString);
+            _db = mux.GetDatabase();
+            _key = key;
+        }
 
         public override void Load()
         {
-            Dictionary<string, string> dataset = DataSets[key];
+            var dataArray = _db.StringGet(_key).ToString().Split('|');
+            Dictionary<string, string> dataset = dataArray.ToDictionary(x=>x.Split(":").First(), x=>x.Split(":").Skip(1).First());
             foreach (var item in dataset) Data.Add(item);
         }
     }
