@@ -1,0 +1,22 @@
+name: Build and publish
+run-name: Build and publish initiated by ${{ github.actor }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Build-And-Publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - name: Build the package
+      run: dotnet build RedisConfigurationProvider/RedisConfigurationProvider.csproj
+    - name: Pack the package
+      run: dotnet pack --configuration Release RedisConfigurationProvider/RedisConfigurationProvider.csproj
+    - name: Publish the package to nuget.org
+      run: dotnet nuget push RedisConfigurationProvider/bin/Release/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}
