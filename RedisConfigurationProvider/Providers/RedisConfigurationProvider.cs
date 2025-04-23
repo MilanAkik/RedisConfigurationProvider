@@ -11,8 +11,8 @@ namespace RedisConfigurationProvider.Providers
     {
 
         public static Dictionary<string, Dictionary<string, string>> DataSets = new Dictionary<string, Dictionary<string, string>> {
-            { "TestKey" , new Dictionary<string, string>{ { "Data1", "Value1" },  { "Data2", "Value2" } } },
-            { "ProdKey" , new Dictionary<string, string>{ { "Data1", "ProdValue1" },  { "Data2", "ProdValue2" } } }
+            { "TestKey" , new Dictionary<string, string>{ { "ConfigurationData:Data1", "Value1" },  { "ConfigurationData:Data2", "Value2" } } },
+            { "ProdKey" , new Dictionary<string, string>{ { "ConfigurationData:Data1", "ProdValue1" },  { "ConfigurationData:Data2", "ProdValue2" } } }
         };
 
         public override void Load()
