@@ -24,8 +24,10 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
-            var dataArray = _db.StringGet(_key).ToString().Split('|').Select(x=>x.Split("="));
-            Dictionary<string, string> dataset = dataArray.ToDictionary(x=>x.First(), x=>x.Skip(1).First());
+            if (!_db.KeyExists(_key)) return;
+            var redisResult = _db.StringGet(_key).ToString();
+            var dataArray = redisResult.Split('|').Select(x=>x.Split("="));
+            Dictionary<string, string> dataset = dataArray.ToDictionary(x => x[0], x=>x[1]);
             foreach (var item in dataset) Data.Add(item);
         }
     }
