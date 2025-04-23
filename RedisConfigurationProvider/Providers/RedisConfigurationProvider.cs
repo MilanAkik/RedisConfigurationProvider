@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace RedisConfigurationProvider.Providers
@@ -23,8 +24,8 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
-            var dataArray = _db.StringGet(_key).ToString().Split('|');
-            Dictionary<string, string> dataset = dataArray.ToDictionary(x=>x.Split(":").First(), x=>x.Split(":").Skip(1).First());
+            var dataArray = _db.StringGet(_key).ToString().Split('|').Select(x=>x.Split("="));
+            Dictionary<string, string> dataset = dataArray.ToDictionary(x=>x.First(), x=>x.Skip(1).First());
             foreach (var item in dataset) Data.Add(item);
         }
     }
