@@ -27,8 +27,7 @@ namespace RedisConfigurationProvider.Providers
         {
             if (!_db.KeyExists(_key)) return;
             var redisResult = _db.StringGet(_key).ToString();
-            var dataArray = redisResult.Split('|').Select(x=>x.Split("="));
-            Dictionary<string, string> dataset = dataArray.ToDictionary(x => x[0], x=>x[1]);
+            Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
             foreach (var item in dataset) Data.Add(item);
         }
 
