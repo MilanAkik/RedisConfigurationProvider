@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.0] - 2025-04-28
+Keys in redis can now be nested.
+
+### Added
+
+### Changed
+- Not only the key specified is loaded. The key can take form ident[_ident]* where first only the first ident is loaded(if the key exists) and then each of the _ident elements are added consecutively to the key and the value at that key is taken and loaded. E.g. key foo_bar_oof will first load the data at key foo than will load the data at key foo_bar and only than the data at key foo_bar_oof each step overriding the same key present from previous step.
+
+### Fixed
+
 ## [1.0.0] - 2025-04-28
 Value at the key in redis now has to be in json format like the ones used in appsettings.json
 

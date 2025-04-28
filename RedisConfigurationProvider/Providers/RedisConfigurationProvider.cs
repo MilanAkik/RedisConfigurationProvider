@@ -13,6 +13,7 @@ namespace RedisConfigurationProvider.Providers
     public sealed class RedisConfigurationProvider : ConfigurationProvider
     {
 
+        private const char NestingSeparator = '_';
         private IDatabase _db;
         private string _key;
 
@@ -25,10 +26,27 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
-            if (!_db.KeyExists(_key)) return;
-            var redisResult = _db.StringGet(_key).ToString();
-            Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
-            foreach (var item in dataset) Data.Add(item);
+            foreach(var key in GetNestedKeys(_key))
+            {
+                if (!_db.KeyExists(key)) continue;
+                var redisResult = _db.StringGet(key).ToString();
+                Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
+                foreach (var item in dataset)
+                {
+                    Data[item.Key]=item.Value;
+                }
+            }
+        }
+
+        private static List<string> GetNestedKeys(string key)
+        {
+            var result = new List<string>();
+            var segments = key.Split(NestingSeparator);
+            for (var i = 1; i <= segments.Length; i++)
+            {
+                result.Add(string.Join('_', segments[0..i]));
+            }
+            return result;
         }
 
         private static Dictionary<string, string> GetKVPFromJson(string json)
