@@ -1,7 +1,6 @@
 using LibraryTestProject.Services.Contracts;
 using LibraryTestProject.Services.Implementations;
 using LibraryTestProject.Services.Models;
-using RedisConfigurationProvider;
 using RedisConfigurationProvider.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +10,6 @@ builder.Services.AddSingleton<IConfigurationTestService, ConfigurationTestServic
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
-app.MapGet("/{n}", (int n) => $"Hello World!\n[{string.Join(',',Class1.GetSquares(n))}]");
 app.MapGet("/config", (string key, IConfigurationTestService service) => service.GetResult(key));
 
 app.Run();
