@@ -26,10 +26,16 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
-            if (!_db.KeyExists(_key)) return;
-            var redisResult = _db.StringGet(_key).ToString();
-            Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
-            foreach (var item in dataset) Data.Add(item);
+            foreach(var key in GetNestedKeys(_key))
+            {
+                if (!_db.KeyExists(_key)) continue;
+                var redisResult = _db.StringGet(_key).ToString();
+                Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
+                foreach (var item in dataset)
+                {
+                    Data.Add(item);
+                }
+            }
         }
 
         private static List<string> GetNestedKeys(string key)
