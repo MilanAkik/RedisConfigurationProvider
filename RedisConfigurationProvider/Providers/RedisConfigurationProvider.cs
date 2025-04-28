@@ -13,6 +13,7 @@ namespace RedisConfigurationProvider.Providers
     public sealed class RedisConfigurationProvider : ConfigurationProvider
     {
 
+        private const char NestingSeparator = '_';
         private IDatabase _db;
         private string _key;
 
@@ -29,6 +30,17 @@ namespace RedisConfigurationProvider.Providers
             var redisResult = _db.StringGet(_key).ToString();
             Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
             foreach (var item in dataset) Data.Add(item);
+        }
+
+        private static List<string> GetNestedKeys(string key)
+        {
+            var result = new List<string>();
+            var segments = key.Split(NestingSeparator);
+            for (var i = 1; i <= segments.Length; i++)
+            {
+                result.Add(string.Join('_', segments[0..i]));
+            }
+            return result;
         }
 
         private static Dictionary<string, string> GetKVPFromJson(string json)
