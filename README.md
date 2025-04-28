@@ -130,6 +130,9 @@ The interim configuration when represented in JSON will look like:
 },
 ```
 
+The key can take the form of ident[_ident]* where first the key ident is loaded (if the key exists) and then each new _ident is added to the key and the value for that key is loaded(if the key exists)
+This way each new _ident can override some specific part of the configuration.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
