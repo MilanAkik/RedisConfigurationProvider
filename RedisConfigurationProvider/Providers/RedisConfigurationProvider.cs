@@ -28,12 +28,12 @@ namespace RedisConfigurationProvider.Providers
         {
             foreach(var key in GetNestedKeys(_key))
             {
-                if (!_db.KeyExists(_key)) continue;
-                var redisResult = _db.StringGet(_key).ToString();
+                if (!_db.KeyExists(key)) continue;
+                var redisResult = _db.StringGet(key).ToString();
                 Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
                 foreach (var item in dataset)
                 {
-                    Data.Add(item);
+                    Data[item.Key]=item.Value;
                 }
             }
         }
