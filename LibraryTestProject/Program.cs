@@ -6,6 +6,7 @@ using RedisConfigurationProvider.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddRedisConfiguration();
 builder.Services.Configure<ConfigurationData>(builder.Configuration.GetSection(nameof(ConfigurationData)));
+builder.Services.Configure<OverrideTestData>(builder.Configuration.GetSection(nameof(OverrideTestData)));
 builder.Services.AddSingleton<IConfigurationTestService, ConfigurationTestService>();
 var app = builder.Build();
 
