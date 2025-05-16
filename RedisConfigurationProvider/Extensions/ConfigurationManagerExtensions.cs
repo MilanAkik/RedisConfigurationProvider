@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using RedisConfigurationProvider.Configuration;
 using RedisConfigurationProvider.Providers;
 using StackExchange.Redis;
 using System;
@@ -14,19 +15,15 @@ namespace RedisConfigurationProvider.Extensions
 
         public static ConfigurationManager AddRedisConfiguration(this ConfigurationManager configurationManager)
         {
-            var redisUrl = configurationManager.GetSection("RedisConfigurationProvider:Url").Value ?? "localhost";
-            var redisPort = configurationManager.GetSection("RedisConfigurationProvider:Port").Value ?? "6379";
-            var redisUsername = configurationManager.GetSection("RedisConfigurationProvider:Username").Value ?? "default";
-            var redisPassword = configurationManager.GetSection("RedisConfigurationProvider:Password").Value ?? "";
-            var key = configurationManager.GetSection("RedisConfigurationProvider:Key").Value;
+            var config = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>();
             ConfigurationOptions opts = new ConfigurationOptions()
             {
-                EndPoints = { { redisUrl, int.Parse(redisPort) } },
-                User = redisUsername,
-                Password = redisPassword
+                EndPoints = { { config.Url, config.Port } },
+                User = config.Username,
+                Password = config.Password
             };
             IConfigurationBuilder builder = configurationManager;
-            builder.Add(new RedisConfigurationSource(opts.ToString(),key));
+            builder.Add(new RedisConfigurationSource(opts.ToString(),config.Key));
             return configurationManager;
         }
 
