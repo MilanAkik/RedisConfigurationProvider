@@ -10,6 +10,7 @@
         public string Username { get; set; } = "default";
         public string Password { get; set; } = "";
         public string Key { get; set; } = "";
+        public string KeyLevelSeparator { get; set; } = "_";
 
     }
 }
