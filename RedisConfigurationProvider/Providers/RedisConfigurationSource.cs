@@ -1,14 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RedisConfigurationProvider.Configuration;
 
 namespace RedisConfigurationProvider.Providers
 {
-    public sealed class RedisConfigurationSource(string connectionString, string key) : IConfigurationSource
+    public sealed class RedisConfigurationSource(RedisConfigurationProviderOptions options) : IConfigurationSource
     {
-        public IConfigurationProvider Build(IConfigurationBuilder builder) => new RedisConfigurationProvider(connectionString, key);
+        public IConfigurationProvider Build(IConfigurationBuilder builder) => new RedisConfigurationProvider(options);
     }
 }
