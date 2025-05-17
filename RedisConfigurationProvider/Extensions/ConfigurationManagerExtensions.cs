@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using RedisConfigurationProvider.Configuration;
 using RedisConfigurationProvider.Providers;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RedisConfigurationProvider.Extensions
 {
@@ -14,19 +9,17 @@ namespace RedisConfigurationProvider.Extensions
 
         public static ConfigurationManager AddRedisConfiguration(this ConfigurationManager configurationManager)
         {
-            var redisUrl = configurationManager.GetSection("RedisConfigurationProvider:Url").Value ?? "localhost";
-            var redisPort = configurationManager.GetSection("RedisConfigurationProvider:Port").Value ?? "6379";
-            var redisUsername = configurationManager.GetSection("RedisConfigurationProvider:Username").Value ?? "default";
-            var redisPassword = configurationManager.GetSection("RedisConfigurationProvider:Password").Value ?? "";
-            var key = configurationManager.GetSection("RedisConfigurationProvider:Key").Value;
-            ConfigurationOptions opts = new ConfigurationOptions()
-            {
-                EndPoints = { { redisUrl, int.Parse(redisPort) } },
-                User = redisUsername,
-                Password = redisPassword
-            };
+            var options = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>();
             IConfigurationBuilder builder = configurationManager;
-            builder.Add(new RedisConfigurationSource(opts.ToString(),key));
+            builder.Add(new RedisConfigurationSource(options));
+            return configurationManager;
+        }
+        public static ConfigurationManager AddRedisConfiguration(this ConfigurationManager configurationManager, Action<RedisConfigurationProviderOptions> setupOptions)
+        {
+            IConfigurationBuilder builder = configurationManager;
+            var options = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>();
+            setupOptions(options);
+            builder.Add(new RedisConfigurationSource(options));
             return configurationManager;
         }
 

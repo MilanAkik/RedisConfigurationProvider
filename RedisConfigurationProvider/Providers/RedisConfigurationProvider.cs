@@ -1,32 +1,34 @@
 ﻿using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using System.Text.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+using RedisConfigurationProvider.Configuration;
 
 namespace RedisConfigurationProvider.Providers
 {
     public sealed class RedisConfigurationProvider : ConfigurationProvider
     {
 
-        private const char NestingSeparator = '_';
+        private string _keyLevelSeparator;
         private IDatabase _db;
         private string _key;
 
-        public RedisConfigurationProvider(string? connectionString, string key)
+        public RedisConfigurationProvider(RedisConfigurationProviderOptions options)
         {
-            var mux = ConnectionMultiplexer.Connect(connectionString);
+            ConfigurationOptions configOptions = new ConfigurationOptions()
+            {
+                EndPoints = { { options.Url, options.Port } },
+                User = options.Username,
+                Password = options.Password
+            };
+            var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
             _db = mux.GetDatabase();
-            _key = key;
+            _key = options.Key;
+            _keyLevelSeparator = options.KeyLevelSeparator;
         }
 
         public override void Load()
         {
-            foreach(var key in GetNestedKeys(_key))
+            foreach(var key in GetNestedKeys(_key, _keyLevelSeparator))
             {
                 if (!_db.KeyExists(key)) continue;
                 var redisResult = _db.StringGet(key).ToString();
@@ -38,13 +40,13 @@ namespace RedisConfigurationProvider.Providers
             }
         }
 
-        private static List<string> GetNestedKeys(string key)
+        private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
         {
             var result = new List<string>();
-            var segments = key.Split(NestingSeparator);
+            var segments = key.Split(keyLevelSeparator);
             for (var i = 1; i <= segments.Length; i++)
             {
-                result.Add(string.Join('_', segments[0..i]));
+                result.Add(string.Join(keyLevelSeparator, segments[0..i]));
             }
             return result;
         }
