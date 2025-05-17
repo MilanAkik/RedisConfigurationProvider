@@ -8,7 +8,7 @@ namespace RedisConfigurationProvider.Providers
     public sealed class RedisConfigurationProvider : ConfigurationProvider
     {
 
-        private const char NestingSeparator = '_';
+        private string _keyLevelSeparator;
         private IDatabase _db;
         private string _key;
 
@@ -23,11 +23,12 @@ namespace RedisConfigurationProvider.Providers
             var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
             _db = mux.GetDatabase();
             _key = options.Key;
+            _keyLevelSeparator = options.KeyLevelSeparator;
         }
 
         public override void Load()
         {
-            foreach(var key in GetNestedKeys(_key))
+            foreach(var key in GetNestedKeys(_key, _keyLevelSeparator))
             {
                 if (!_db.KeyExists(key)) continue;
                 var redisResult = _db.StringGet(key).ToString();
@@ -39,13 +40,13 @@ namespace RedisConfigurationProvider.Providers
             }
         }
 
-        private static List<string> GetNestedKeys(string key)
+        private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
         {
             var result = new List<string>();
-            var segments = key.Split(NestingSeparator);
+            var segments = key.Split(keyLevelSeparator);
             for (var i = 1; i <= segments.Length; i++)
             {
-                result.Add(string.Join('_', segments[0..i]));
+                result.Add(string.Join(keyLevelSeparator, segments[0..i]));
             }
             return result;
         }
