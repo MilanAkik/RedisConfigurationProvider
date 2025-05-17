@@ -1,12 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using System.Text.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+using RedisConfigurationProvider.Configuration;
 
 namespace RedisConfigurationProvider.Providers
 {
@@ -17,11 +12,17 @@ namespace RedisConfigurationProvider.Providers
         private IDatabase _db;
         private string _key;
 
-        public RedisConfigurationProvider(string? connectionString, string key)
+        public RedisConfigurationProvider(RedisConfigurationProviderOptions options)
         {
-            var mux = ConnectionMultiplexer.Connect(connectionString);
+            ConfigurationOptions configOptions = new ConfigurationOptions()
+            {
+                EndPoints = { { options.Url, options.Port } },
+                User = options.Username,
+                Password = options.Password
+            };
+            var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
             _db = mux.GetDatabase();
-            _key = key;
+            _key = options.Key;
         }
 
         public override void Load()
