@@ -116,6 +116,11 @@ After the library is added either
     builder.Configuration.AddRedisConfiguration();
   ```
   has to be called on the configuration builder
+* extension method 
+  ```c#
+    builder.Configuration.AddRedisConfiguration((options)=>{});
+  ```
+  has to be called on the configuration builder where the actions parameters can be used to override the interim configuration
 * or the work it does has to be done manually
 
 The extension method collects the necessary redis connection string components and the key to be used from the interim configuration and adds the redis configuration source to the configuration builder
@@ -126,12 +131,15 @@ The interim configuration when represented in JSON will look like:
   "Port": "1234", // optional defaults to "6379"
   "Username": "username", // optional defaults to "default"
   "Password": "password", // optional defaults to ""
+  "KeyLevelSeparator": "-", // optional defaults to "_"
   "Key": "key"
 },
 ```
 
-The key can take the form of ident[_ident]* where first the key ident is loaded (if the key exists) and then each new _ident is added to the key and the value for that key is loaded(if the key exists)
-This way each new _ident can override some specific part of the configuration.
+The key can take the form of ```ident [keylevelseparator ident]*``` where first the key ident is loaded (if the key exists) and then each new ```keylevelseparator ident``` is added to the key and the value for that key is loaded(if the key exists)
+This way each new ```keylevelseparator ident``` can override some specific part of the configuration.
+
+keylevelseparator is "_" by default but that can be overriden through options
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
