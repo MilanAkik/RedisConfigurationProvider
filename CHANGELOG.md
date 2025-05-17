@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2025-05-17
+
+### Added
+- Added a options class that now simplifies the loading of the interim configuration
+- Added a new overload of the extension method which accepts an action with the options parameter which is used for overwriting of components of options loaded from interim configuration
+
+### Changed
+- The string that specifies the levels of a key are now overwritable through the options class
+
+### Fixed
+
+
 ## [1.1.0] - 2025-04-28
 Keys in redis can now be nested.
 
