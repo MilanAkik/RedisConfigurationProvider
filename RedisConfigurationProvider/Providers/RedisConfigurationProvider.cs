@@ -2,6 +2,7 @@
 using StackExchange.Redis;
 using System.Text.Json;
 using RedisConfigurationProvider.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace RedisConfigurationProvider.Providers
 {
@@ -11,8 +12,9 @@ namespace RedisConfigurationProvider.Providers
         private string _keyLevelSeparator;
         private IDatabase _db;
         private string _key;
+        private ILogger<RedisConfigurationProvider> _logger;
 
-        public RedisConfigurationProvider(RedisConfigurationProviderOptions options)
+        public RedisConfigurationProvider(RedisConfigurationProviderOptions options, ILogger<RedisConfigurationProvider> logger)
         {
             ConfigurationOptions configOptions = new ConfigurationOptions()
             {
@@ -24,6 +26,7 @@ namespace RedisConfigurationProvider.Providers
             _db = mux.GetDatabase();
             _key = options.Key;
             _keyLevelSeparator = options.KeyLevelSeparator;
+            _logger = logger;
         }
 
         public override void Load()
