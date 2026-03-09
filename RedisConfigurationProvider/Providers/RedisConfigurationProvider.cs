@@ -31,6 +31,7 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
+            _logger.LogInformation("Started loading");
             foreach(var key in GetNestedKeys(_key, _keyLevelSeparator))
             {
                 if (!_db.KeyExists(key)) continue;
@@ -41,6 +42,7 @@ namespace RedisConfigurationProvider.Providers
                     Data[item.Key]=item.Value;
                 }
             }
+            _logger.LogInformation("Finished loading");
         }
 
         private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
