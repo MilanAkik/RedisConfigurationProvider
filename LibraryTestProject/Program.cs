@@ -4,7 +4,11 @@ using LibraryTestProject.Services.Models;
 using RedisConfigurationProvider.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddRedisConfiguration();
+using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+});
+builder.Configuration.AddRedisConfiguration(loggerFactory);
 builder.Services.Configure<ConfigurationData>(builder.Configuration.GetSection(nameof(ConfigurationData)));
 builder.Services.Configure<OverrideTestData>(builder.Configuration.GetSection(nameof(OverrideTestData)));
 builder.Services.AddSingleton<IConfigurationTestService, ConfigurationTestService>();
