@@ -34,7 +34,13 @@ namespace RedisConfigurationProvider.Providers
             _logger.LogInformation("Started loading");
             foreach(var key in GetNestedKeys(_key, _keyLevelSeparator))
             {
-                if (!_db.KeyExists(key)) continue;
+                _logger.LogInformation($"Trying to load key {key}");
+                if (!_db.KeyExists(key))
+                {
+                    _logger.LogDebug($"Key {key} does not exist. Skipping");
+                    continue;
+                }
+                _logger.LogDebug($"Key {key} exists. Loading");
                 var redisResult = _db.StringGet(key).ToString();
                 Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
                 foreach (var item in dataset)
