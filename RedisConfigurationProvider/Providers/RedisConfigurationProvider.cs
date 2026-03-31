@@ -36,19 +36,18 @@ namespace RedisConfigurationProvider.Providers
             var foundKeys = new List<string>();
             foreach (var key in nestedKeys)
             {
-                _logger.LogInformation($"Trying to load key {key}");
-                if (!_db.KeyExists(key))
+                _logger.LogDebug($"Checking the key {key}");
+                var keyFound = _db.KeyExists(key);
+                _logger.LogDebug($"Key {key} {(keyFound ? "exists" : "does not exist")}");
+                if (keyFound)
                 {
-                    _logger.LogDebug($"Key {key} does not exist. Skipping");
-                    continue;
-                }
-                foundKeys.Add(key);
-                _logger.LogDebug($"Key {key} exists. Loading");
-                var redisResult = _db.StringGet(key).ToString();
-                Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
-                foreach (var item in dataset)
-                {
-                    Data[item.Key]=item.Value;
+                    foundKeys.Add(key);
+                    var redisResult = _db.StringGet(key).ToString();
+                    Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
+                    foreach (var item in dataset)
+                    {
+                        Data[item.Key] = item.Value;
+                    }
                 }
             }
             _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
