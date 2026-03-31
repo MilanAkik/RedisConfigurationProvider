@@ -31,8 +31,10 @@ namespace RedisConfigurationProvider.Providers
 
         public override void Load()
         {
-            _logger.LogInformation("Started loading");
-            foreach(var key in GetNestedKeys(_key, _keyLevelSeparator))
+            _logger.LogInformation($"Started loading configuration from Redis for key {_key}");
+            var nestedKeys = GetNestedKeys(_key, _keyLevelSeparator);
+            var foundKeys = new List<string>();
+            foreach (var key in nestedKeys)
             {
                 _logger.LogInformation($"Trying to load key {key}");
                 if (!_db.KeyExists(key))
@@ -40,6 +42,7 @@ namespace RedisConfigurationProvider.Providers
                     _logger.LogDebug($"Key {key} does not exist. Skipping");
                     continue;
                 }
+                foundKeys.Add(key);
                 _logger.LogDebug($"Key {key} exists. Loading");
                 var redisResult = _db.StringGet(key).ToString();
                 Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
@@ -48,7 +51,7 @@ namespace RedisConfigurationProvider.Providers
                     Data[item.Key]=item.Value;
                 }
             }
-            _logger.LogInformation("Finished loading");
+            _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
         }
 
         private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
