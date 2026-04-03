@@ -24,8 +24,10 @@ namespace RedisConfigurationProvider.Providers
                     User = options.Username,
                     Password = options.Password
                 };
+                logger.LogDebug("Connecting to Redis at {Endpoint}", configOptions);
                 var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
                 _db = mux.GetDatabase();
+                logger.LogDebug("Connected to Redis at {Endpoint}", configOptions);
                 _key = options.Key;
                 _keyLevelSeparator = options.KeyLevelSeparator;
                 _logger = logger;
