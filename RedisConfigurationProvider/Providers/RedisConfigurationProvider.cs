@@ -57,11 +57,13 @@ namespace RedisConfigurationProvider.Providers
                         var redisResult = _db.StringGet(key).ToString();
                         _logger.LogDebug("Value for key {key} fetched. Length: {length}", key, redisResult.Length);
                         Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
-                        _logger.LogDebug("Parsed {count} key-value pairs from JSON for key {key}", dataset.Count, key);
+                        int overloads = 0;
                         foreach (var item in dataset)
                         {
+                            if (Data.ContainsKey(item.Key)) overloads++;
                             Data[item.Key] = item.Value;
                         }
+                        _logger.LogDebug("Key {key} processed. Total pairs: {kvpcount}. Overloads: {overloads}", key, dataset.Count, overloads);
                     }
                 }
                 if (foundKeys.Count == 0)
