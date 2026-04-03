@@ -16,44 +16,60 @@ namespace RedisConfigurationProvider.Providers
 
         public RedisConfigurationProvider(RedisConfigurationProviderOptions options, ILogger<RedisConfigurationProvider> logger)
         {
-            ConfigurationOptions configOptions = new ConfigurationOptions()
+            try
             {
-                EndPoints = { { options.Url, options.Port } },
-                User = options.Username,
-                Password = options.Password
-            };
-            var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
-            _db = mux.GetDatabase();
-            _key = options.Key;
-            _keyLevelSeparator = options.KeyLevelSeparator;
-            _logger = logger;
+                ConfigurationOptions configOptions = new ConfigurationOptions()
+                {
+                    EndPoints = { { options.Url, options.Port } },
+                    User = options.Username,
+                    Password = options.Password
+                };
+                var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
+                _db = mux.GetDatabase();
+                _key = options.Key;
+                _keyLevelSeparator = options.KeyLevelSeparator;
+                _logger = logger;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while connecting to Redis");
+                throw;
+            }
         }
 
         public override void Load()
         {
-            _logger.LogInformation($"Started loading configuration from Redis for key {_key}");
-            var nestedKeys = GetNestedKeys(_key, _keyLevelSeparator);
-            var foundKeys = new List<string>();
-            foreach (var key in nestedKeys)
+            try
             {
-                _logger.LogDebug($"Checking the key {key}");
-                var keyFound = _db.KeyExists(key);
-                _logger.LogDebug($"Key {key} {(keyFound ? "exists" : "does not exist")}");
-                if (keyFound)
+                _logger.LogInformation($"Started loading configuration from Redis for key {_key}");
+                var nestedKeys = GetNestedKeys(_key, _keyLevelSeparator);
+                var foundKeys = new List<string>();
+                foreach (var key in nestedKeys)
                 {
-                    foundKeys.Add(key);
-                    var redisResult = _db.StringGet(key).ToString();
-                    Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
-                    foreach (var item in dataset)
+                    _logger.LogDebug($"Checking the key {key}");
+                    var keyFound = _db.KeyExists(key);
+                    _logger.LogDebug($"Key {key} {(keyFound ? "exists" : "does not exist")}");
+                    if (keyFound)
                     {
-                        Data[item.Key] = item.Value;
+                        foundKeys.Add(key);
+                        var redisResult = _db.StringGet(key).ToString();
+                        Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
+                        foreach (var item in dataset)
+                        {
+                            Data[item.Key] = item.Value;
+                        }
                     }
                 }
+                if (foundKeys.Count == 0)
+                    _logger.LogWarning($"No keys found in Redis for the provided key {_key} and its nested keys. Nested keys checked: {nestedKeys.Count}");
+                else
+                    _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
             }
-            if (foundKeys.Count == 0)
-                _logger.LogWarning($"No keys found in Redis for the provided key {_key} and its nested keys. Nested keys checked: {nestedKeys.Count}");
-            else
-                _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while loading configuration from Redis for key {_key}");
+                throw;
+            }
         }
 
         private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
