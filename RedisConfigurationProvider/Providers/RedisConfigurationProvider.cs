@@ -55,7 +55,9 @@ namespace RedisConfigurationProvider.Providers
                     {
                         foundKeys.Add(key);
                         var redisResult = _db.StringGet(key).ToString();
+                        _logger.LogDebug("Value for key {key} fetched. Length: {length}", key, redisResult.Length);
                         Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
+                        _logger.LogDebug("Parsed {count} key-value pairs from JSON for key {key}", dataset.Count, key);
                         foreach (var item in dataset)
                         {
                             Data[item.Key] = item.Value;
