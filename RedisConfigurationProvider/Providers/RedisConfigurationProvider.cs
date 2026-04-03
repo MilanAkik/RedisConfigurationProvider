@@ -50,7 +50,10 @@ namespace RedisConfigurationProvider.Providers
                     }
                 }
             }
-            _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
+            if (foundKeys.Count == 0)
+                _logger.LogWarning($"No keys found in Redis for the provided key {_key} and its nested keys. Nested keys checked: {nestedKeys.Count}");
+            else
+                _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
         }
 
         private static List<string> GetNestedKeys(string key, string keyLevelSeparator)
