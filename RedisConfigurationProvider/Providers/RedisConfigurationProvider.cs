@@ -56,6 +56,12 @@ namespace RedisConfigurationProvider.Providers
                         foundKeys.Add(key);
                         var redisResult = _db.StringGet(key).ToString();
                         _logger.LogDebug("Value for key {key} fetched. Length: {length}", key, redisResult.Length);
+
+                        if (string.IsNullOrWhiteSpace(redisResult))
+                        {
+                            _logger.LogWarning("Key {Key} exists but the value is empty or null. Skipping.", key);
+                            continue;
+                        }
                         Dictionary<string, string> dataset = GetKVPFromJson(redisResult);
                         int overloads = 0;
                         foreach (var item in dataset)
