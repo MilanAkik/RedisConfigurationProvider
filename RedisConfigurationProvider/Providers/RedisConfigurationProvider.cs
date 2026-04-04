@@ -43,19 +43,19 @@ namespace RedisConfigurationProvider.Providers
         {
             try
             {
-                _logger.LogInformation($"Started loading configuration from Redis for key {_key}");
+                _logger.LogInformation("Started loading configuration from Redis for key {Key}", _key);
                 var nestedKeys = GetNestedKeys(_key, _keyLevelSeparator);
                 var foundKeys = new List<string>();
                 foreach (var key in nestedKeys)
                 {
-                    _logger.LogDebug($"Checking the key {key}");
+                    _logger.LogDebug("Checking the key {Key}", key);
                     var keyFound = _db.KeyExists(key);
-                    _logger.LogDebug($"Key {key} {(keyFound ? "exists" : "does not exist")}");
+                    _logger.LogDebug("Key {Key} {Status}", key, keyFound ? "exists" : "does not exist");
                     if (keyFound)
                     {
                         foundKeys.Add(key);
                         var redisResult = _db.StringGet(key).ToString();
-                        _logger.LogDebug("Value for key {key} fetched. Length: {length}", key, redisResult.Length);
+                        _logger.LogDebug("Value for key {Key} fetched. Length: {Length}", key, redisResult.Length);
 
                         if (string.IsNullOrWhiteSpace(redisResult))
                         {
@@ -69,17 +69,17 @@ namespace RedisConfigurationProvider.Providers
                             if (Data.ContainsKey(item.Key)) overloads++;
                             Data[item.Key] = item.Value;
                         }
-                        _logger.LogDebug("Key {key} processed. Total pairs: {kvpcount}. Overloads: {overloads}", key, dataset.Count, overloads);
+                        _logger.LogDebug("Key {Key} processed. Total pairs: {KvpCount}. Overloads: {Overloads}", key, dataset.Count, overloads);
                     }
                 }
                 if (foundKeys.Count == 0)
-                    _logger.LogWarning($"No keys found in Redis for the provided key {_key} and its nested keys. Nested keys checked: {nestedKeys.Count}");
+                    _logger.LogWarning("No keys found in Redis for the provided key {Key} and its nested keys. Nested keys checked: {CheckedCount}", _key, nestedKeys.Count);
                 else
-                    _logger.LogInformation($"Finished loading configuration from Redis for key {_key}. Nested keys checked: {nestedKeys.Count}. Nested keys found: {foundKeys.Count}");
+                    _logger.LogInformation("Finished loading configuration from Redis for key {Key}. Nested keys checked: {CheckedCount}. Nested keys found: {FoundCount}", _key, nestedKeys.Count, foundKeys.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred while loading configuration from Redis for key {_key}");
+                _logger.LogError(ex, "An error occurred while loading configuration from Redis for key {Key}", _key);
                 throw;
             }
         }
@@ -142,7 +142,6 @@ namespace RedisConfigurationProvider.Providers
                         {
                             throw new JsonException($"Null or undefined value found at '{prefix}{key}'. This cannot be processed.");
                         }
-
                 }
             }
             return result;
