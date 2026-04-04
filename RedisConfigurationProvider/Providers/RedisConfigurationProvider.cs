@@ -140,7 +140,7 @@ namespace RedisConfigurationProvider.Providers
                         }
                     default:
                         {
-                            throw new JsonException("Null or undefined value found. This cannot be processed");
+                            throw new JsonException($"Null or undefined value found at '{prefix}{key}'. This cannot be processed.");
                         }
 
                 }
