@@ -6,7 +6,8 @@ using RedisConfigurationProvider.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
 {
-    loggingBuilder.SetMinimumLevel(LogLevel.Debug);
+    loggingBuilder.SetMinimumLevel(LogLevel.Warning);
+    loggingBuilder.AddFilter("RedisConfigurationProvider", LogLevel.Trace);
     loggingBuilder.AddConsole();
 });
 builder.Configuration.AddRedisConfiguration(loggerFactory);
