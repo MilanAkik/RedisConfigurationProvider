@@ -95,8 +95,9 @@ namespace RedisConfigurationProvider.Providers
             return result;
         }
 
-        private static Dictionary<string, string> GetKVPFromJson(string json)
+        private Dictionary<string, string> GetKVPFromJson(string json)
         {
+            _logger.LogTrace("Starting JSON parsing. Raw JSON length: {Length}", json.Length);
             Dictionary<string, string> result = [];
             Queue<(string,JsonElement)> elements = new Queue<(string, JsonElement)>();
             var doc = JsonDocument.Parse(json);
@@ -106,25 +107,33 @@ namespace RedisConfigurationProvider.Providers
             {
                 var (key, elem) = elements.Dequeue();
                 string prefix = (key.Length == 0) ? key : $"{key}:";
+                _logger.LogTrace("Processing JSON element node. Key: {Key}, Kind: {ValueKind}", key, elem.ValueKind);
                 switch (elem.ValueKind)
                 {
                     case JsonValueKind.String:
                         {
-                            result.Add($"{key}", elem.GetString());
+                            var val = elem.GetString();
+                            _logger.LogTrace("Extracted String KVP: {PropertyKey} = {PropertyValue}", key, val);
+                            result.Add($"{key}", val);
                             break;
                         }
                     case JsonValueKind.Number:
                     case JsonValueKind.True:
                     case JsonValueKind.False:
                         {
-                            result.Add($"{key}", elem.GetRawText());
+                            var val = elem.GetRawText();
+                            var kind = (elem.ValueKind == JsonValueKind.Number) ? "Number" : "Boolean";
+                            _logger.LogTrace("Extracted {Kind} KVP: {PropertyKey} = {PropertyValue}", kind, key, val);
+                            result.Add($"{key}", val);
                             break;
                         }
                     case JsonValueKind.Object:
                         {
                             var properties = elem.EnumerateObject().ToList();
+                            _logger.LogTrace("Element {Key} is an Object with {Count} properties. Enqueueing children.", key, properties.Count);
                             foreach (var property in properties)
                             {
+                                _logger.LogTrace("Enqueueing property {PropertyName} for key {Key}", property.Name, key);
                                 elements.Enqueue(($"{prefix}{property.Name}", property.Value));
                             }
                             break;
@@ -132,8 +141,10 @@ namespace RedisConfigurationProvider.Providers
                     case JsonValueKind.Array:
                         {
                             var arrayElements = elem.EnumerateArray().ToList();
+                            _logger.LogTrace("Element {Key} is an Array with {Count} elements. Enqueueing elements.", key, arrayElements.Count);
                             for (int i= 0; i<arrayElements.Count; i++)
                             {
+                                _logger.LogTrace("Enqueueing array element at index {Index} for key {Key}", i, key);
                                 elements.Enqueue(($"{prefix}{i}", arrayElements[i]));
                             }
                             break;
@@ -144,6 +155,7 @@ namespace RedisConfigurationProvider.Providers
                         }
                 }
             }
+            _logger.LogTrace("Finished JSON parsing. Extracted {Count} key-value pairs.", result.Count);
             return result;
         }
 
