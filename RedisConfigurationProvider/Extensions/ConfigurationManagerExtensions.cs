@@ -15,6 +15,10 @@ namespace RedisConfigurationProvider.Extensions
         {
             loggerFactory ??= _dummyLoggerFactory;
             var options = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>();
+            if (options == null)
+            {
+                throw new InvalidOperationException($"Missing configuration section '{RedisConfigurationProviderOptions.Name}'. Please ensure it is defined in your settings.");
+            }
             IConfigurationBuilder builder = configurationManager;
             builder.Add(new RedisConfigurationSource(options, loggerFactory));
             return configurationManager;
@@ -24,7 +28,7 @@ namespace RedisConfigurationProvider.Extensions
         {
             loggerFactory ??= _dummyLoggerFactory;
             IConfigurationBuilder builder = configurationManager;
-            var options = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>();
+            var options = configurationManager.GetSection(RedisConfigurationProviderOptions.Name).Get<RedisConfigurationProviderOptions>() ?? new RedisConfigurationProviderOptions();
             setupOptions(options);
             builder.Add(new RedisConfigurationSource(options, loggerFactory));
             return configurationManager;
