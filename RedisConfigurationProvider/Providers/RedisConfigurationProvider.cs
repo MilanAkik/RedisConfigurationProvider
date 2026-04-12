@@ -6,55 +6,50 @@ using Microsoft.Extensions.Logging;
 
 namespace RedisConfigurationProvider.Providers
 {
-    public sealed class RedisConfigurationProvider : ConfigurationProvider
+    public sealed class RedisConfigurationProvider : ConfigurationProvider, IDisposable
     {
 
-        private string _keyLevelSeparator;
-        private IDatabase _db;
-        private string _key;
-        private ILogger<RedisConfigurationProvider> _logger;
+        private readonly ILogger<RedisConfigurationProvider> _logger;
+        private readonly RedisConfigurationProviderOptions _options;
+        private ConnectionMultiplexer? _multiplexer;
 
         public RedisConfigurationProvider(RedisConfigurationProviderOptions options, ILogger<RedisConfigurationProvider> logger)
         {
-            try
-            {
-                ConfigurationOptions configOptions = new ConfigurationOptions()
-                {
-                    EndPoints = { { options.Url, options.Port } },
-                    User = options.Username,
-                    Password = options.Password
-                };
-                logger.LogDebug("Connecting to Redis at {Endpoint}", configOptions);
-                var mux = ConnectionMultiplexer.Connect(configOptions.ToString());
-                _db = mux.GetDatabase();
-                logger.LogDebug("Connected to Redis at {Endpoint}", configOptions);
-                _key = options.Key;
-                _keyLevelSeparator = options.KeyLevelSeparator;
-                _logger = logger;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "An error occurred while connecting to Redis");
-                throw;
-            }
+            _options = options;
+            _logger = logger;
         }
 
         public override void Load()
         {
             try
             {
-                _logger.LogInformation("Started loading configuration from Redis for key {Key}", _key);
-                var nestedKeys = GetNestedKeys(_key, _keyLevelSeparator);
+                if (_multiplexer == null)
+                {
+                    ConfigurationOptions configOptions = new ConfigurationOptions()
+                    {
+                        EndPoints = { { _options.Url, _options.Port } },
+                        User = _options.Username,
+                        Password = _options.Password
+                    };
+                    
+                    _logger.LogDebug("Connecting to Redis at {Endpoint}", configOptions);
+                    _multiplexer = ConnectionMultiplexer.Connect(configOptions.ToString());
+                    _logger.LogDebug("Connected to Redis at {Endpoint}", configOptions);
+                }
+                
+                IDatabase db = _multiplexer.GetDatabase();
+                _logger.LogInformation("Started loading configuration from Redis for key {Key}", _options.Key);
+                var nestedKeys = GetNestedKeys(_options.Key, _options.KeyLevelSeparator);
                 var foundKeys = new List<string>();
                 foreach (var key in nestedKeys)
                 {
                     _logger.LogDebug("Checking the key {Key}", key);
-                    var keyFound = _db.KeyExists(key);
+                    var keyFound = db.KeyExists(key);
                     _logger.LogDebug("Key {Key} {Status}", key, keyFound ? "exists" : "does not exist");
                     if (keyFound)
                     {
                         foundKeys.Add(key);
-                        var redisResult = _db.StringGet(key).ToString();
+                        var redisResult = db.StringGet(key).ToString();
                         _logger.LogDebug("Value for key {Key} fetched. Length: {Length}", key, redisResult.Length);
 
                         if (string.IsNullOrWhiteSpace(redisResult))
@@ -73,13 +68,13 @@ namespace RedisConfigurationProvider.Providers
                     }
                 }
                 if (foundKeys.Count == 0)
-                    _logger.LogWarning("No keys found in Redis for the provided key {Key} and its nested keys. Nested keys checked: {CheckedCount}", _key, nestedKeys.Count);
+                    _logger.LogWarning("No keys found in Redis for the provided key {Key} and its nested keys. Nested keys checked: {CheckedCount}", _options.Key, nestedKeys.Count);
                 else
-                    _logger.LogInformation("Finished loading configuration from Redis for key {Key}. Nested keys checked: {CheckedCount}. Nested keys found: {FoundCount}", _key, nestedKeys.Count, foundKeys.Count);
+                    _logger.LogInformation("Finished loading configuration from Redis for key {Key}. Nested keys checked: {CheckedCount}. Nested keys found: {FoundCount}", _options.Key, nestedKeys.Count, foundKeys.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while loading configuration from Redis for key {Key}", _key);
+                _logger.LogError(ex, "An error occurred while loading configuration from Redis for key {Key}", _options.Key);
                 throw;
             }
         }
@@ -159,5 +154,14 @@ namespace RedisConfigurationProvider.Providers
             return result;
         }
 
+        public void Dispose()
+        {
+            if (_multiplexer != null)
+            {
+                _logger.LogTrace("Disposing Redis ConnectionMultiplexer.");
+                _multiplexer.Dispose();
+                _multiplexer = null;
+            }
+        }
     }
 }
