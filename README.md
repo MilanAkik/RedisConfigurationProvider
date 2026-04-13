@@ -113,15 +113,17 @@ There are a multiple ways to add the package in your project:
 After the library is added either
 * extension method 
   ```c#
-    builder.Configuration.AddRedisConfiguration();
+    builder.Configuration.AddRedisConfiguration([ILoggerFactory? loggerFactory]);
   ```
   has to be called on the configuration builder
 * extension method 
   ```c#
-    builder.Configuration.AddRedisConfiguration((options)=>{});
+    builder.Configuration.AddRedisConfiguration((options)=>{}, [ILoggerFactory? loggerFactory]);
   ```
   has to be called on the configuration builder where the actions parameters can be used to override the interim configuration
 * or the work it does has to be done manually
+
+The optional logger factory parameter in both extension methods is used to create the logger used by the configuration provider. If it is not set the NullLoggerFactory.Instance is used.
 
 The extension method collects the necessary redis connection string components and the key to be used from the interim configuration and adds the redis configuration source to the configuration builder
 The interim configuration when represented in JSON will look like:
