@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.0] - 2026-04-13
+
+### Added
+- Added logging to the configuration loading covering all log levels from trace to error
+
+### Changed
+- The extension methods that add the configuration provider have a new ILoggerFactory optional parameter that will be used for creating a logger. If the argument is not set, the NullLoggerFactory.Instance is used.
+
+### Fixed
+- The configuration provider constructor used to connect to the database and the multiplexer was left hanging and never disposed. The new version doesn't connect in the constructor but in the Load method and implements the IDisposable, where in the Dispose method the multiplexer is disposed of
+
 ## [1.2.0] - 2025-05-17
 
 ### Added
